@@ -7,7 +7,11 @@ const usercontroller=require('./controllers/usercontroller')
 //instance router
 const router=new express.Router
 
-//register
+//Login
+router.post('/login',usercontroller.login)
+
+
+//register 
 router.post('/register',usercontroller.register)
 
 
