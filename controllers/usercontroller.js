@@ -1,4 +1,4 @@
-const users = require('../models/usermodel')
+const users = require('../models/userModel');
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs');
 const randomBytes = require('randombytes')
@@ -70,7 +70,8 @@ exports.login = async (req, res) => {
         }
 
         // Generate a token
-        const token = jwt.sign({ userId: existingUser._id }, 'secretkey');
+        const token = jwt.sign({ userId: existingUser._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
 
         // Response
         res.status(200).json({ existingUser, token });
@@ -79,3 +80,37 @@ exports.login = async (req, res) => {
         res.status(500).json('Server error');
     }
 };
+
+exports.addUser = async (req, res) => {
+    console.log("inside addUser controller");
+
+    const { email, password, role, profile } = req.body;
+
+    try {
+        const existingUser = await users.findOne({ email });
+        if (existingUser) {
+            return res.status(406).json("Account Already Exists");
+        }
+
+        // Hash the password before saving
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Create new user
+        const newUser = new users({
+            email,
+            password: hashedPassword, // Store the hashed password
+            role: role || "common", // Default role to 'common' if not provided
+            profile
+        });
+
+        // Save user to DB
+        await newUser.save();
+
+        res.status(201).json({ message: "User added successfully", user: newUser });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json("Server error");
+    }
+};
+

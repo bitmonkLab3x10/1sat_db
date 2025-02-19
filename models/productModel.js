@@ -16,6 +16,8 @@ const productSchema = new mongoose.Schema(
         shopName: { type: String, required: true },
         location: { type: String, required: true },
         address: { type: String, required: true },
+        latitude: { type: Number, required: true }, // ✅ Added latitude
+        longitude: { type: Number, required: true }, // ✅ Added longitude
       },
     ],
     location: {
@@ -36,3 +38,4 @@ productSchema.virtual("status").get(function () {
 });
 
 module.exports = mongoose.model("Product", productSchema);
+
