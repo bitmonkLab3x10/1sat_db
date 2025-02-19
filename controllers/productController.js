@@ -67,4 +67,25 @@ exports.editProduct = async (req, res) => {
       res.status(500).json({ success: false, message: error.message });
     }
   };
+  // ✅ DELETE PRODUCT
+exports.deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    // Only allow "admin" or "client" to delete
+    if (req.user.role !== "admin" && req.user.role !== "client") {
+      return res.status(403).json({ success: false, message: "Unauthorized access" });
+    }
+
+    await product.deleteOne();
+
+    res.json({ success: true, message: "Product deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
   

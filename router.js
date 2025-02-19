@@ -9,6 +9,8 @@ const router=new express.Router
 
 //Login
 router.post('/login',usercontroller.login)
+router.post("/add", usercontroller.addUser);
+
 
 
 //register 
