@@ -6,6 +6,8 @@ const productSchema = new mongoose.Schema(
     description: { type: String, required: true },
     price: { type: Number, required: true },
     count: { type: Number, required: true },
+    gif: { type: String, required: false } ,
+
     availableTime: {
       start: { type: Date, required: true },
       end: { type: Date, required: true },
