@@ -6,16 +6,19 @@ const {
   editProduct,
   deleteProduct,
 } = require("../controllers/productController");
-
 const { authenticateUser, checkRole } = require("../middlewares/authMiddleware");
+const upload = require("../middlewares/multerConfig"); // ✅ Import Multer middleware
 
 const router = express.Router();
 
-// Routes
-router.post("/add", authenticateUser, checkRole(["admin", "client"]), addProduct);
+// ✅ Updated Route to Handle File Upload
+router.post("/add", authenticateUser, checkRole(["admin", "client"]), upload.single("gif"), addProduct);
+
 router.get("/", getProducts);
 router.get("/:id", getProductById);
-router.put("/edit/:id", authenticateUser, checkRole(["admin", "client"]), editProduct);
+router.put("/edit/:id", authenticateUser, checkRole(["admin", "client"]), upload.single("gif"), editProduct);
 router.delete("/delete/:id", authenticateUser, checkRole(["admin", "client"]), deleteProduct);
 
 module.exports = router;
+
+

@@ -8,15 +8,23 @@ const router = require('./router')
 
 //import connection
 require('./connection')
+const faqRoutes = require("./Routes/faqRoutes");
+const clientRoutes = require('./Routes/clientRoutes');
+
+
+
 
 const productRoutes = require("./Routes/productRoutes");
 const purchaseRoutes = require("./Routes/purchaseRoutes");
+const authRoutes = require("./Routes/authRoutes");
 
 //create sever
 const sat=express()
 
 //server using cors
 sat.use(cors())
+
+sat.use("/uploads", express.static("uploads"));
 
 
 //parse
@@ -27,6 +35,9 @@ sat.use(router)
 
 sat.use("/products", productRoutes); // Product-related routes
 sat.use("/purchases", purchaseRoutes); // Purchase-related routes
+sat.use("/faqs", faqRoutes);
+sat.use('/clients', clientRoutes);
+sat.use('/auth', authRoutes);
 
 
 //set port
