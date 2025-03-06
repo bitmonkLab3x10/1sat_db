@@ -6,7 +6,8 @@ const productSchema = new mongoose.Schema(
     description: { type: String, required: true },
     price: { type: Number, required: true },
     count: { type: Number, required: true },
-    gif: { type: String, required: false } ,
+    gifUrl: { type: String, }, // ✅ Match the controller
+    
 
     availableTime: {
       start: { type: Date, required: true },
