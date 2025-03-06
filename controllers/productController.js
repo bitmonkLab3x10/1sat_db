@@ -5,25 +5,28 @@ const path = require("path");
 
 exports.addProduct = async (req, res) => {
   try {
-    // Check if a file was uploaded
+    console.log("Request file:", req.file); // Debugging
+
     let gifUrl = "";
     if (req.file) {
-      gifUrl = `/uploads/${req.file.filename}`; // Save file path
+      gifUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`; // ✅ Full URL
     }
 
-    // Create a new product
     const product = new Product({
       ...req.body,
       addedBy: req.user._id,
-      gifUrl, // Save GIF file URL
+      gifUrl, // ✅ Store complete URL
     });
 
     await product.save();
     res.status(201).json({ success: true, message: "Product added successfully", product });
+
   } catch (error) {
+    console.error("Error adding product:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // ✅ UPLOAD GIF FOR PRODUCT
 exports.uploadProductGif = async (req, res) => {
@@ -42,23 +45,27 @@ exports.uploadProductGif = async (req, res) => {
       return res.status(400).json({ success: false, message: "No GIF file uploaded" });
     }
 
+    console.log("Uploaded File:", req.file); // Debugging
+
     // Delete old GIF if it exists
-    if (product.gif) {
-      const oldGifPath = path.join(__dirname, "../uploads", product.gif);
+    if (product.gifUrl) {
+      const oldGifPath = path.join(__dirname, "../uploads", path.basename(product.gifUrl));
       if (fs.existsSync(oldGifPath)) {
         fs.unlinkSync(oldGifPath);
       }
     }
 
-    // Save the new GIF filename
-    product.gif = req.file.filename;
+    // Save the new GIF URL
+    product.gifUrl = `/uploads/${req.file.filename}`;
     await product.save();
 
-    res.json({ success: true, message: "GIF uploaded successfully", gifUrl: `/uploads/${req.file.filename}` });
+    res.json({ success: true, message: "GIF uploaded successfully", gifUrl: product.gifUrl });
   } catch (error) {
+    console.error("Error uploading GIF:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // ✅ GET ALL PRODUCTS (Includes Dynamic Status)
 exports.getProducts = async (req, res) => {
@@ -69,7 +76,7 @@ exports.getProducts = async (req, res) => {
     const productsWithStatus = products.map((product) => ({
       ...product.toObject(),
       status: product.status, // Computed dynamically
-      gifUrl: product.gif ? `/uploads/${product.gif}` : null, // Include GIF URL
+      gifUrl: product.gifUrl ? `/uploads/${product.gifUrl.replace(/^.*[\\\/]/, '')}` : null, // FIXED: Use gifUrl instead of gif
     }));
 
     res.json({ success: true, products: productsWithStatus });
@@ -89,7 +96,8 @@ exports.getProductById = async (req, res) => {
       product: { 
         ...product.toObject(), 
         status: product.status, 
-        gifUrl: product.gif ? `/uploads/${product.gif}` : null 
+        gifUrl: product.gifUrl ? `/uploads/${product.gifUrl.replace(/^.*[\\\/]/, '')}` : null,
+
       } 
     });
   } catch (error) {

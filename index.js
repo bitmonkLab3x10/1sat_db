@@ -6,6 +6,8 @@ const cors=require('cors')
 //import router
 const router = require('./router')
 
+const path = require("path"); // ✅ Import path module
+
 //import connection
 require('./connection')
 const faqRoutes = require("./Routes/faqRoutes");
@@ -24,7 +26,7 @@ const sat=express()
 //server using cors
 sat.use(cors())
 
-sat.use("/uploads", express.static("uploads"));
+sat.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 
 //parse
