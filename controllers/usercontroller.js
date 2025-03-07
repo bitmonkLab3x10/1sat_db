@@ -9,41 +9,39 @@ const randomBytes = require('randombytes')
 // Set the fallback random number generator
 bcrypt.setRandomFallback(randomBytes);
 
-exports.register = async (req, res) => {
-    console.log('inside register controller');
-    const { email, password, profile } = req.body;
-    console.log(email, password, profile);
+exports.register = async (req, res) => {  // ✅ Make sure this is async
+    console.log("Inside register controller");
+
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+    }
 
     try {
-        const existingUser = await users.findOne({ email });
+        const existingUser = await users.findOne({ email });  // ✅ Await inside async function
         if (existingUser) {
-            return res.status(406).json('Account Already Exists');
+            return res.status(406).json({ error: "Account Already Exists" });
         }
 
-        // Hash the password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Create a new user instance
         const newUser = new users({
             email,
-            password: hashedPassword,  // Use the hashed password here
-            profile
+            password: hashedPassword,
+            profile: "Default Profile"
         });
 
-        // Save the user to the database
-        await newUser.save();
+        await newUser.save();  // ✅ Await inside async function
 
-        // Generate a token
-        const token = jwt.sign({ userId: newUser._id }, 'secretkey');
+        res.status(201).json({ message: "User registered successfully!" });
 
-        // Response
-        res.status(201).json({ newUser, token });
     } catch (error) {
-        console.error(error);
-        res.status(500).json('Server error');
+        console.error("Registration Error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 };
+
 
 
 

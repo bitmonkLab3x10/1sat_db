@@ -88,22 +88,25 @@ exports.getProducts = async (req, res) => {
 // ✅ GET SINGLE PRODUCT (Includes Dynamic Status)
 exports.getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate("addedBy", "email role");
-    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+    const product = await Product.findById(req.params.id);
 
-    res.json({ 
-      success: true, 
-      product: { 
-        ...product.toObject(), 
-        status: product.status, 
-        gifUrl: product.gifUrl ? `/uploads/${product.gifUrl.replace(/^.*[\\\/]/, '')}` : null,
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
 
-      } 
-    });
+    // ✅ Format `gifUrl` properly
+    const productWithGif = {
+      ...product.toObject(),
+      gifUrl: product.gif ? `/uploads/${product.gif}` : null, // Ensure correct path
+    };
+
+    res.json({ success: true, product: productWithGif });
   } catch (error) {
+    console.error("Error fetching product:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // ✅ UPDATE PRODUCT
 exports.editProduct = async (req, res) => {
