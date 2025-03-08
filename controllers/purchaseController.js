@@ -36,9 +36,11 @@ exports.purchaseProduct = async (req, res) => {
     // Save purchase
     await purchase.save();
 
-    // Mark product as unavailable
-    product.count = 0; // Set count to 0
-    product.status = "unavailable"; // Mark status as unavailable
+    // Decrease product count accordingly
+    product.count -= quantity;
+    if (product.count === 0) {
+      product.status = "unavailable"; // Mark status as unavailable if out of stock
+    }
     await product.save();
 
     res.status(201).json({
@@ -51,6 +53,7 @@ exports.purchaseProduct = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // ✅ GET USER PURCHASE HISTORY
 exports.getUserPurchases = async (req, res) => {

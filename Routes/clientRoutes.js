@@ -1,5 +1,3 @@
-// routes/clientRoutes.js
-
 const express = require('express');
 const router = express.Router();
 const {
@@ -10,10 +8,11 @@ const {
   deleteClient,
 } = require('../controllers/clientController');
 
-router.post('/clients', createClient);
-router.get('/clients', getClients);
-router.get('/clients/:id', getClient);
-router.put('/clients/:id', updateClient);
-router.delete('/clients/:id', deleteClient);
+// Corrected routes (Remove extra "/clients")
+router.post('/', createClient);  // POST /clients
+router.get('/', getClients);  // GET /clients
+router.get('/:id', getClient);  // GET /clients/:id
+router.put('/:id', updateClient);  // PUT /clients/:id
+router.delete('/:id', deleteClient);  // DELETE /clients/:id
 
 module.exports = router;
