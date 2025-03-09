@@ -5,6 +5,7 @@ const {
   getProductById,
   editProduct,
   deleteProduct,
+  getProductsByUser,
 } = require("../controllers/productController");
 const { authenticateUser, checkRole } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/multerConfig"); // ✅ Import Multer middleware
@@ -18,6 +19,7 @@ router.get("/", getProducts);
 router.get("/:id", getProductById);
 router.put("/edit/:id", authenticateUser, checkRole(["admin", "client"]), upload.single("gif"), editProduct);
 router.delete("/delete/:id", authenticateUser, checkRole(["admin", "client"]), deleteProduct);
+router.get("/user/:userId", getProductsByUser);
 
 module.exports = router;
 
