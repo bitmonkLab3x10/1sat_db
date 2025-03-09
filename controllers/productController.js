@@ -1,6 +1,9 @@
 const Product = require("../models/productModel");
 const fs = require("fs");
 const path = require("path");
+const mongoose = require("mongoose");
+
+const User = require("../models/userModel");
 
 
 exports.addProduct = async (req, res) => {
@@ -160,6 +163,36 @@ exports.deleteProduct = async (req, res) => {
     await product.deleteOne();
 
     res.json({ success: true, message: "Product deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+
+exports.getProductsByUser = async (req, res) => {
+  try {
+    const userId = req.params.userId; // MongoDB _id of user
+
+    // Validate if it's a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ success: false, message: "Invalid user ID format" });
+    }
+
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Find products added by this user
+    const products = await Product.find({ addedBy: userId }).populate("addedBy", "email role");
+
+    if (products.length === 0) {
+      return res.status(404).json({ success: false, message: "No products found for this user" });
+    }
+
+    res.json({ success: true, products });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
