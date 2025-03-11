@@ -2,10 +2,9 @@ const Product = require("../models/productModel");
 const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
+const User = require("../models/usermodel");
 
-const User = require("../models/userModel");
-
-
+// ✅ ADD PRODUCT
 exports.addProduct = async (req, res) => {
   try {
     console.log("Request file:", req.file); // Debugging
@@ -29,7 +28,6 @@ exports.addProduct = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 // ✅ UPLOAD GIF FOR PRODUCT
 exports.uploadProductGif = async (req, res) => {
@@ -59,7 +57,7 @@ exports.uploadProductGif = async (req, res) => {
     }
 
     // Save the new GIF URL
-    product.gifUrl = `/uploads/${req.file.filename}`;
+    product.gifUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
     await product.save();
 
     res.json({ success: true, message: "GIF uploaded successfully", gifUrl: product.gifUrl });
@@ -69,8 +67,7 @@ exports.uploadProductGif = async (req, res) => {
   }
 };
 
-
-// ✅ GET ALL PRODUCTS (Includes Dynamic Status)
+// ✅ GET ALL PRODUCTS
 exports.getProducts = async (req, res) => {
   try {
     const products = await Product.find().populate("addedBy", "email role");
@@ -78,8 +75,7 @@ exports.getProducts = async (req, res) => {
     // Modify response to include computed status
     const productsWithStatus = products.map((product) => ({
       ...product.toObject(),
-      status: product.status, // Computed dynamically
-      gifUrl: product.gifUrl ? `/uploads/${product.gifUrl.replace(/^.*[\\\/]/, '')}` : null, // FIXED: Use gifUrl instead of gif
+      gifUrl: product.gifUrl ? product.gifUrl : null, // ✅ Ensure correct `gifUrl`
     }));
 
     res.json({ success: true, products: productsWithStatus });
@@ -88,7 +84,7 @@ exports.getProducts = async (req, res) => {
   }
 };
 
-// ✅ GET SINGLE PRODUCT (Includes Dynamic Status)
+// ✅ GET SINGLE PRODUCT
 exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -97,19 +93,12 @@ exports.getProductById = async (req, res) => {
       return res.status(404).json({ success: false, message: "Product not found" });
     }
 
-    // ✅ Format `gifUrl` properly
-    const productWithGif = {
-      ...product.toObject(),
-      gifUrl: product.gif ? `/uploads/${product.gif}` : null, // Ensure correct path
-    };
-
-    res.json({ success: true, product: productWithGif });
+    res.json({ success: true, product });
   } catch (error) {
     console.error("Error fetching product:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 // ✅ UPDATE PRODUCT
 exports.editProduct = async (req, res) => {
@@ -128,12 +117,7 @@ exports.editProduct = async (req, res) => {
     Object.assign(product, req.body);
     await product.save();
 
-    // Send updated product with dynamic status
-    res.json({ 
-      success: true, 
-      message: "Product updated successfully", 
-      product: { ...product.toObject(), status: product.status, gifUrl: product.gif ? `/uploads/${product.gif}` : null }
-    });
+    res.json({ success: true, message: "Product updated successfully", product });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -153,8 +137,8 @@ exports.deleteProduct = async (req, res) => {
     }
 
     // Delete GIF file if exists
-    if (product.gif) {
-      const gifPath = path.join(__dirname, "../uploads", product.gif);
+    if (product.gifUrl) {
+      const gifPath = path.join(__dirname, "../uploads", path.basename(product.gifUrl));
       if (fs.existsSync(gifPath)) {
         fs.unlinkSync(gifPath);
       }
@@ -168,8 +152,7 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
-
-
+// ✅ GET PRODUCTS BY USER
 exports.getProductsByUser = async (req, res) => {
   try {
     const userId = req.params.userId; // MongoDB _id of user
