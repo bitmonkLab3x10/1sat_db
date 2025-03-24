@@ -8,6 +8,9 @@ const router = require('./router')
 
 const path = require("path"); // ✅ Import path module
 
+const compression = require("compression");
+
+
 //import connection
 require('./connection')
 const faqRoutes = require("./Routes/faqRoutes");
@@ -34,6 +37,7 @@ sat.use(express.json())
 
 //use router
 sat.use(router)
+sat.use(compression());
 
 sat.use("/products", productRoutes); // Product-related routes
 sat.use("/purchases", purchaseRoutes); // Purchase-related routes
