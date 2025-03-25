@@ -8,7 +8,7 @@ if (!connectionString) {
     process.exit(1);
 }
 
-mongoose.connect(connectionString, {
+mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
