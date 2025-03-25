@@ -47,8 +47,8 @@ sat.use('/auth', authRoutes);
 
 
 //set port
-// const PORT=4000 || process.env.PORT
-const port = process.env.PORT
+const PORT= process.env.PORT || 4000;
+// const port = process.env.PORT
 //listen
 sat.listen(PORT,()=>{
     console.log("Server Running Successfully  ${port}");
