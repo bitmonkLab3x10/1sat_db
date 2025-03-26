@@ -27,7 +27,16 @@ const authRoutes = require("./Routes/authRoutes");
 const sat=express()
 
 //server using cors
-sat.use(cors())
+
+
+sat.use(
+  cors({
+    origin: "http://localhost:5173", // Allow your frontend
+    methods: "GET,POST,PUT,DELETE", // Allow necessary methods
+    credentials: true, // If using cookies or authorization headers
+  })
+);
+
 
 sat.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
