@@ -76,22 +76,23 @@ const PORT = process.env.PORT || 4000;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // CORS Configuration
-const allowedOrigins = [
-  FRONTEND_URL,
-  'http://localhost:3000',
-  'https://onesatui.onrender.com'
-];
+// const allowedOrigins = [
+//   FRONTEND_URL,
+//   'http://localhost:3000',
+//   'https://onesatui.onrender.com'
+// ];
 
-sat.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
+// sat.use(cors({
+//   origin: function (origin, callback) {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true
+// }));
+sat.use(cors( ));
 
 // Middleware
 sat.use(express.json());
