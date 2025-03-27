@@ -92,7 +92,15 @@ const FRONTEND_URL = 'https://onesatui.onrender.com';
 //   },
 //   credentials: true
 // }));
-sat.use(cors( ));
+sat.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+sat.use(cors({
+  origin: FRONTEND_URL,
+  credentials: true
+}));
+// sat.use(cors( ));
 
 // Middleware
 sat.use(express.json());
