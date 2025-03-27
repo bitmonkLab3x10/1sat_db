@@ -8,9 +8,6 @@ const router = require('./router')
 
 const path = require("path"); // ✅ Import path module
 
-const compression = require("compression");
-
-
 //import connection
 require('./connection')
 const faqRoutes = require("./Routes/faqRoutes");
@@ -27,16 +24,7 @@ const authRoutes = require("./Routes/authRoutes");
 const sat=express()
 
 //server using cors
-
-
-sat.use(
-  cors({
-    origin: "http://localhost:5173", // Allow your frontend
-    methods: "GET,POST,PUT,DELETE", // Allow necessary methods
-    credentials: true, // If using cookies or authorization headers
-  })
-);
-
+sat.use(cors())
 
 sat.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
@@ -46,7 +34,6 @@ sat.use(express.json())
 
 //use router
 sat.use(router)
-sat.use(compression());
 
 sat.use("/products", productRoutes); // Product-related routes
 sat.use("/purchases", purchaseRoutes); // Purchase-related routes
@@ -61,5 +48,5 @@ const PORT=4000 || process.env.PORT
 //listen
 sat.listen(PORT,()=>{
     console.log("Server Running Successfully");
-    
+    
 })
