@@ -120,5 +120,4 @@ sat.get('/api/health', (req, res) => {
 sat.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Frontend URL: ${FRONTEND_URL}`);
-  console.log(`CORS Allowed Origins: ${allowedOrigins.join(', ')}`);
 });
