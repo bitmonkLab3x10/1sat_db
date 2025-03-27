@@ -73,7 +73,7 @@ const authRoutes = require("./Routes/authRoutes");
 // Initialize app
 const sat = express();
 const PORT = process.env.PORT || 4000;
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const FRONTEND_URL = 'https://onesatui.onrender.com';
 
 // CORS Configuration
 // const allowedOrigins = [
