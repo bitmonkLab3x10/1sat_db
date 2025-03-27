@@ -74,7 +74,7 @@ const authRoutes = require("./Routes/authRoutes");
 const sat = express();
 const PORT = process.env.PORT || 4000;
 const FRONTEND_URL = 'https://onesatui.onrender.com';
-
+require('./connection')
 // CORS Configuration
 // const allowedOrigins = [
 //   FRONTEND_URL,
