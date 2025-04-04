@@ -1,26 +1,25 @@
 const multer = require("multer");
-const fs = require("fs");
-const path = require("path");
+const { v2: cloudinary } = require("cloudinary");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
-// Define the uploads directory
-const uploadDir = path.join(__dirname, "../uploads");
+// ✅ Cloudinary config (values should be in your .env)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-// ✅ Ensure the "uploads" folder exists
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Configure Multer storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir); // Store in the uploads folder
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+// ✅ Storage config
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "uploads", // Optional: your Cloudinary folder name
+    allowed_formats: ["gif"], // Only allow GIFs
+    public_id: (req, file) => Date.now().toString(), // Unique filename
   },
 });
 
-// File filter to accept only GIF files
+// ✅ File filter (redundant here but keeps your logic)
 const fileFilter = (req, file, cb) => {
   if (file.mimetype === "image/gif") {
     cb(null, true);
@@ -29,11 +28,11 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Initialize Multer
+// ✅ Multer middleware
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: { fileSize: 20 * 1024 * 1024 }, // Max file size: 5MB
+  storage,
+  fileFilter,
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
 });
 
 module.exports = upload;

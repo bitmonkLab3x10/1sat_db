@@ -1,23 +1,21 @@
 const Product = require("../models/productModel");
-const fs = require("fs");
-const path = require("path");
 const mongoose = require("mongoose");
 const User = require("../models/usermodel");
 
-// ✅ ADD PRODUCT
+// ✅ ADD PRODUCT (Cloudinary-based)
 exports.addProduct = async (req, res) => {
   try {
-    console.log("Request file:", req.file); // Debugging
+    console.log("Uploaded file:", req.file); // Debug
 
     let gifUrl = "";
-    if (req.file) {
-      gifUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`; // ✅ Full URL
+    if (req.file && req.file.path) {
+      gifUrl = req.file.path; // Cloudinary returns full URL
     }
 
     const product = new Product({
       ...req.body,
       addedBy: req.user._id,
-      gifUrl, // ✅ Store complete URL
+      gifUrl,
     });
 
     await product.save();
@@ -29,53 +27,14 @@ exports.addProduct = async (req, res) => {
   }
 };
 
-// ✅ UPLOAD GIF FOR PRODUCT
-exports.uploadProductGif = async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
-    if (!product) {
-      return res.status(404).json({ success: false, message: "Product not found" });
-    }
-
-    // Only allow "admin" or "client" to upload GIFs
-    if (req.user.role !== "admin" && req.user.role !== "client") {
-      return res.status(403).json({ success: false, message: "Unauthorized access" });
-    }
-
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: "No GIF file uploaded" });
-    }
-
-    console.log("Uploaded File:", req.file); // Debugging
-
-    // Delete old GIF if it exists
-    if (product.gifUrl) {
-      const oldGifPath = path.join(__dirname, "../uploads", path.basename(product.gifUrl));
-      if (fs.existsSync(oldGifPath)) {
-        fs.unlinkSync(oldGifPath);
-      }
-    }
-
-    // Save the new GIF URL
-    product.gifUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
-    await product.save();
-
-    res.json({ success: true, message: "GIF uploaded successfully", gifUrl: product.gifUrl });
-  } catch (error) {
-    console.error("Error uploading GIF:", error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
 // ✅ GET ALL PRODUCTS
 exports.getProducts = async (req, res) => {
   try {
     const products = await Product.find().populate("addedBy", "email role");
 
-    // Modify response to include computed status
     const productsWithStatus = products.map((product) => ({
       ...product.toObject(),
-      gifUrl: product.gifUrl ? product.gifUrl : null, // ✅ Ensure correct `gifUrl`
+      gifUrl: product.gifUrl || null,
     }));
 
     res.json({ success: true, products: productsWithStatus });
@@ -100,7 +59,7 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-// ✅ UPDATE PRODUCT
+// ✅ EDIT PRODUCT (with optional GIF update via Cloudinary)
 exports.editProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -108,13 +67,16 @@ exports.editProduct = async (req, res) => {
       return res.status(404).json({ success: false, message: "Product not found" });
     }
 
-    // Only allow "admin" or "client" to update
     if (req.user.role !== "admin" && req.user.role !== "client") {
       return res.status(403).json({ success: false, message: "Unauthorized access" });
     }
 
-    // Update product fields
     Object.assign(product, req.body);
+
+    if (req.file && req.file.path) {
+      product.gifUrl = req.file.path; // Cloudinary URL
+    }
+
     await product.save();
 
     res.json({ success: true, message: "Product updated successfully", product });
@@ -131,18 +93,11 @@ exports.deleteProduct = async (req, res) => {
       return res.status(404).json({ success: false, message: "Product not found" });
     }
 
-    // Only allow "admin" or "client" to delete
     if (req.user.role !== "admin" && req.user.role !== "client") {
       return res.status(403).json({ success: false, message: "Unauthorized access" });
     }
 
-    // Delete GIF file if exists
-    if (product.gifUrl) {
-      const gifPath = path.join(__dirname, "../uploads", path.basename(product.gifUrl));
-      if (fs.existsSync(gifPath)) {
-        fs.unlinkSync(gifPath);
-      }
-    }
+    // 🔁 Optional: delete file from Cloudinary if you're storing public_id
 
     await product.deleteOne();
 
@@ -155,20 +110,17 @@ exports.deleteProduct = async (req, res) => {
 // ✅ GET PRODUCTS BY USER
 exports.getProductsByUser = async (req, res) => {
   try {
-    const userId = req.params.userId; // MongoDB _id of user
+    const userId = req.params.userId;
 
-    // Validate if it's a valid MongoDB ObjectId
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ success: false, message: "Invalid user ID format" });
     }
 
-    // Check if user exists
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Find products added by this user
     const products = await Product.find({ addedBy: userId }).populate("addedBy", "email role");
 
     if (products.length === 0) {
