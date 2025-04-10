@@ -5,27 +5,63 @@ const User = require("../models/usermodel");
 // ✅ ADD PRODUCT (Cloudinary-based)
 exports.addProduct = async (req, res) => {
   try {
-    console.log("Uploaded file:", req.file); // Debug
+    console.log("Uploaded file:", req.file);
 
     let gifUrl = "";
     if (req.file && req.file.path) {
-      gifUrl = req.file.path; // Cloudinary returns full URL
+      gifUrl = req.file.path;
     }
 
+    const {
+      name,
+      description,
+      price,
+      count,
+      'location.city': city,
+      'location.country': country,
+      'availableTime.start': start,
+      'availableTime.end': end,
+      'shop.shopName': shopName,
+      'shop.location': shopLocation,
+      'shop.address': shopAddress,
+      'shop.latitude': latitude,
+      'shop.longitude': longitude,
+    } = req.body;
+
     const product = new Product({
-      ...req.body,
-      addedBy: req.user._id,
+      name,
+      description,
+      price,
+      count,
       gifUrl,
+      addedBy: req.user._id,
+      location: {
+        city,
+        country,
+      },
+      availableTime: {
+        start,
+        end,
+      },
+      shop: {
+        shopName,
+        location: shopLocation,
+        address: shopAddress,
+        latitude,
+        longitude,
+      }
     });
 
     await product.save();
-    res.status(201).json({ success: true, message: "Product added successfully", product });
 
+    res.status(201).json({ success: true, message: "Product added successfully", product });
   } catch (error) {
     console.error("Error adding product:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
 
 // ✅ GET ALL PRODUCTS
 exports.getProducts = async (req, res) => {
@@ -71,10 +107,41 @@ exports.editProduct = async (req, res) => {
       return res.status(403).json({ success: false, message: "Unauthorized access" });
     }
 
-    Object.assign(product, req.body);
+    const {
+      name,
+      description,
+      price,
+      count,
+      'location.city': city,
+      'location.country': country,
+      'availableTime.start': start,
+      'availableTime.end': end,
+      'shop.shopName': shopName,
+      'shop.location': shopLocation,
+      'shop.address': shopAddress,
+      'shop.latitude': latitude,
+      'shop.longitude': longitude,
+    } = req.body;
+
+    product.name = name || product.name;
+    product.description = description || product.description;
+    product.price = price || product.price;
+    product.count = count || product.count;
+    product.location = { city: city || product.location.city, country: country || product.location.country };
+    product.availableTime = {
+      start: start || product.availableTime.start,
+      end: end || product.availableTime.end,
+    };
+    product.shop = {
+      shopName: shopName || product.shop.shopName,
+      location: shopLocation || product.shop.location,
+      address: shopAddress || product.shop.address,
+      latitude: latitude || product.shop.latitude,
+      longitude: longitude || product.shop.longitude,
+    };
 
     if (req.file && req.file.path) {
-      product.gifUrl = req.file.path; // Cloudinary URL
+      product.gifUrl = req.file.path;
     }
 
     await product.save();
@@ -84,6 +151,7 @@ exports.editProduct = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // ✅ DELETE PRODUCT
 exports.deleteProduct = async (req, res) => {
